@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+type data_cetak struct {
+	Water int `json:"water"`
+	Wind  int `json:"wind"`
+}
+
 func main() {
 	//buat data randomize data water dan wind
 	ticker := time.NewTicker(15 * time.Second)
@@ -47,7 +52,6 @@ func main() {
 				data := map[string]interface{}{
 					"water": water,
 					"wind":  wind,
-					"id":    0,
 				}
 
 				//ubah menjadi JSON
@@ -59,7 +63,7 @@ func main() {
 
 				//buat request dengan fungsi http.NewRequest
 				req, err := http.NewRequest("POST",
-					"https://jsonplaceholder.typicode.com/posts?=quot",
+					"https://jsonplaceholder.typicode.com/posts",
 					bytes.NewBuffer(requestJson))
 				req.Header.Set("Content-type", "application/json")
 				if err != nil {
@@ -70,16 +74,29 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
-				// defer res.Body.Close()
 
 				body, err := ioutil.ReadAll(res.Body)
 				if err != nil {
 					log.Fatalln(err)
 				}
 
-				log.Println(string(body))
+				//unmarshall data agar hanya mengambil nilai water dan wind
+				var cetak data_cetak
+				if err := json.Unmarshal([]byte(string(body)), &cetak); err != nil {
+					fmt.Println(err)
+					return
+				}
+
+				//data kembali diconvert ke json sehingga hanya mengeluarkan output water dan wind
+				cetakjson, err := json.Marshal(cetak)
+				if err != nil {
+					log.Fatalln(err)
+				}
+
+				log.Println(string(cetakjson))
+				//print status berdasarkan kondisi
 				fmt.Printf("status water: %s \n", water_status)
-				fmt.Printf("status wind: %s \n", wind_status)
+				fmt.Printf("status wind: %s \n \n", wind_status)
 			}
 
 		}
